@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-echo "-------------------------キャラコ・ネットワークの導入------------------------------"
-sysctl -w net.ipv4.conf.all.rp_filter=1 #
+
+echo "----------------------キャラコ・ネットワークの導入---------------------------"
+sysctl -w net.ipv4.conf.all.rp_filter=1 
 cd /opt/k8s/work
 curl https://docs.projectcalico.org/manifests/calico.yaml -O
 
