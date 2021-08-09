@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 echo ""
-echo "----------kubernetesサーバー側バイナリパッケージをダウンロードする--------------"
+echo "----------kubernetesサーバー側バイナリパッケージのダウンロード--------------"
 echo ""
 cd /opt/k8s/work
 wget https://dl.k8s.io/v1.18.0/kubernetes-server-linux-arm64.tar.gz
@@ -19,8 +19,9 @@ for node_ip in ${NODE_IPS[@]}
   done
   
 echo ""
-echo "---------------------kube-apiserverをデプロイする---------------------"
+echo "----------------------------kube-apiserverの設定----------------------------"
 echo ""
+
 #kubernetesを作成する-マスター証明書と秘密鍵
 cd /opt/k8s/work
 source /opt/k8s/bin/environment.sh
@@ -54,7 +55,7 @@ cat > kubernetes-csr.json <<EOF
   ]
 }
 EOF
-#証明書と秘密鍵を生成する
+#証明書と秘密鍵の生成
 cfssl gencert -ca=/opt/k8s/work/ca.pem \
   -ca-key=/opt/k8s/work/ca-key.pem \
   -config=/opt/k8s/work/ca-config.json \
@@ -69,7 +70,7 @@ for node_ip in ${NODE_IPS[@]}
     scp kubernetes*.pem root@${node_ip}:/etc/kubernetes/cert/
   done
 
-#暗号化された構成ファイルを作成する
+#暗号化された構成ファイルの作成
 cd /opt/k8s/work
 source /opt/k8s/bin/environment.sh
 cat > encryption-config.yaml <<EOF
@@ -95,7 +96,7 @@ for node_ip in ${NODE_IPS[@]}
   done
 
 echo ""
-echo "---------------------監査ポリシーファイルを作成する---------------------"
+echo "-------------------------監査ポリシーファイルの作成-------------------------"
 echo ""
 cd /opt/k8s/work
 source /opt/k8s/bin/environment.sh
@@ -298,7 +299,7 @@ for node_ip in ${NODE_IPS[@]}
     scp audit-policy.yaml root@${node_ip}:/etc/kubernetes/audit-policy.yaml
   done
 
-#创建后续访问 metrics-server 或 kube-prometheus 使用的证书
+#後でmetrics-serverまたはkube-prometheusにアクセスするための証明書の作成
 cd /opt/k8s/work
 cat > proxy-client-csr.json <<EOF
 {
@@ -333,7 +334,7 @@ for node_ip in ${NODE_IPS[@]}
     scp proxy-client*.pem root@${node_ip}:/etc/kubernetes/cert/
   done
 
-#kube-api server systemdユニットテンプレートファイルを作成する
+#kube-api server systemdユニットテンプレートファイルの作成
 cd /opt/k8s/work
 source /opt/k8s/bin/environment.sh
 cat > kube-apiserver.service.template <<EOF
@@ -422,7 +423,7 @@ for node_ip in ${NODE_IPS[@]}
     scp kube-apiserver-${node_ip}.service root@${node_ip}:/etc/systemd/system/kube-apiserver.service
   done
   
-#kube-apiserverサービスを開始する。
+#kube-apiserverサービスを開始する
 source /opt/k8s/bin/environment.sh
 for node_ip in ${NODE_IPS[@]}
   do
@@ -432,7 +433,7 @@ for node_ip in ${NODE_IPS[@]}
   done
 
 echo ""
-echo "---------------------高可用性 kube-controller-manager クラスターのデプロイ---------------------"
+echo "-------------高可用性 kube-controller-manager クラスターの設定--------------"
 echo ""
 #kube-controller-managerの証明書と秘密鍵の作成
 cd /opt/k8s/work
@@ -584,7 +585,7 @@ for node_ip in ${NODE_IPS[@]}
   done
 
 echo ""
-echo "---------------------高可用性 kube-scheduler クラスターのデプロイ---------------------"
+echo "-----------------高可用性 kube-scheduler クラスターの設定-------------------"
 echo ""
 #kube-schedulerの証明書と秘密鍵の作成
 cd /opt/k8s/work
