@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 echo ""
-echo "---------------------------依存パッケージのインストール---------------------------"
+echo "-----------------------依存パッケージの設定-------------------------"
 echo ""
 source /opt/k8s/bin/environment.sh
 for node_ip in ${NODE_IPS[@]}
@@ -12,7 +12,7 @@ for node_ip in ${NODE_IPS[@]}
 
 
 echo ""
-echo "---------------------------apiserver 高可用,基于 nginx 代理的 kube-apiserver 高可用方案---------------------------"
+echo "api-server高可用性;kube-nginxプロキシに基づくapi-server高可用性ソリューション"
 echo ""
 #nginxのダウンロードとコンパイル
 cd /opt/k8s/work
@@ -120,7 +120,7 @@ for node_ip in ${NODE_IPS[@]}
   done
 
 echo ""
-echo "---------------------------kubeletコンポーネントのデプロイ---------------------------"
+echo "----------------------kubeletコンポーネントの設定---------------------------"
 echo ""
 #　kubelet bootstrap kubeconfig ファイルの作成
 cd /opt/k8s/work
@@ -365,7 +365,7 @@ for node_ip in ${NODE_IPS[@]}
 kubectl get csr
 kubectl get csr | grep Pending | awk '{print $1}' | xargs kubectl certificate approve
 
-#证书认证和授权
+#証明書の認証と承認
 curl -s --cacert /etc/kubernetes/cert/ca.pem --cert /etc/kubernetes/cert/kube-controller-manager.pem --key /etc/kubernetes/cert/kube-controller-manager-key.pem https://192.168.11.30:10250/metrics 
 curl -s --cacert /etc/kubernetes/cert/ca.pem --cert /opt/k8s/work/admin.pem --key /opt/k8s/work/admin-key.pem https://192.168.11.30:10250/metrics|head
 
@@ -379,7 +379,7 @@ echo ${TOKEN}
 curl -s --cacert /etc/kubernetes/cert/ca.pem -H "Authorization: Bearer ${TOKEN}" https://192.168.11.30:10250/metrics | head
 
 echo ""
-echo "部署 kube-proxy 组件"
+echo "----------------------kube-proxyコンポーネントの設定------------------------"
 echo ""
 #kube-proxy証明書を作成する
 cd /opt/k8s/work
@@ -437,7 +437,7 @@ for node_name in ${NODE_NAMES[@]}
     scp kube-proxy.kubeconfig root@${node_name}:/etc/kubernetes/
   done
 
-#kube-proxy構成ファイルを作成する
+#kube-proxy構成ファイルの作成
 cd /opt/k8s/work
 source /opt/k8s/bin/environment.sh
 cat > kube-proxy-config.yaml.template <<EOF
@@ -512,4 +512,3 @@ for node_ip in ${NODE_IPS[@]}
     ssh root@${node_ip} "modprobe ip_vs_rr"
     ssh root@${node_ip} "systemctl daemon-reload && systemctl enable kube-proxy && systemctl restart kube-proxy"
   done
-
