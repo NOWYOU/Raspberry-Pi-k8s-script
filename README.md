@@ -30,7 +30,7 @@ If DNS does not support host name resolution, you also need to add the correspon
 cat >> /etc/hosts <<EOF
 192.168.11.30 k8s-01
 192.168.11.31 k8s-02
-192.168.11.32 k8s-0
+192.168.11.32 k8s-03
 EOF
 ```
 
