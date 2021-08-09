@@ -6,70 +6,68 @@ echo ""
 cat <<EOF >  environment.sh
 #!/usr/bin/bash
 
-# 生成 EncryptionConfig 所需的加密 key
+# EncryptionConfigに必要な暗号化キーを生成する
 export ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
 
-# 集群各机器 IP 数组
+# クラスタ内の各マシンのIPアレイ
 export NODE_IPS=(192.168.11.30 192.168.11.31)
 
-# 集群各 IP 对应的主机名数组
+# クラスターの各IPに対応するホスト名の配列
 export NODE_NAMES=(k8s-01 k8s-02)
 
-# etcd 集群服务地址列表
+# etcdクラスターサービスアドレスリスト
 export ETCD_ENDPOINTS="https://192.168.11.30:2379,https://192.168.11.31:2379"
 
-# etcd 集群间通信的 IP 和端口
+# etcdクラスター間の通信用のIPとポート
 export ETCD_NODES="k8s-01=https://192.168.11.30:2380,k8s-02=https://192.168.11.31:2380"
 
-# kube-apiserver 的反向代理(kube-nginx)地址端口
+# kube-apiserverのリバースプロキシ（kube-nginx）アドレスポート
 export KUBE_APISERVER="https://127.0.0.1:8443"
 
-# 节点间互联网络接口名称
+# NIC名
 export IFACE="eth0"
 
-# etcd 数据目录
+# etcdデータディレクトリ
 export ETCD_DATA_DIR="/data/k8s/etcd/data"
 
-# etcd WAL 目录，建议是 SSD 磁盘分区，或者和 ETCD_DATA_DIR 不同的磁盘分区
+# etcd WALディレクトリ
 export ETCD_WAL_DIR="/data/k8s/etcd/wal"
 
-# k8s 各组件数据目录
+# k8sコンポーネントデータディレクトリ
 export K8S_DIR="/data/k8s/k8s"
 
-# docker 数据目录
+# dockerデータディレクトリ
 export DOCKER_DIR="/data/k8s/docker"
 
-## 以下参数一般不需要修改
+## 以下のパラメータは通常、変更する必要はない
 
-# TLS Bootstrapping 使用的 Token，可以使用命令 head -c 16 /dev/urandom | od -An -t x | tr -d ' ' 生成
+# TLSブートストラップで使用されるトークンは、コマンド「head -c 16 / dev / urandom | od -An -t x | tr -d ''」を使用して生成できる
 BOOTSTRAP_TOKEN="4dffc0bf300850341efaa0c1c3b858ab"
 
-# 最好使用 当前未用的网段 来定义服务网段和 Pod 网段
-
-# 服务网段，部署前路由不可达，部署后集群内路由可达(kube-proxy 保证)
+# サービスネットワークセグメント、展開前はルートに到達できず、展開後にクラスター内のルートに到達可能（kube-proxyによる保証）
 SERVICE_CIDR="10.254.0.0/16"
 
-# Pod 网段，建议 /16 段地址，部署前路由不可达，部署后集群内路由可达(flanneld 保证)
+# ポッドネットワークセグメント
 CLUSTER_CIDR="172.30.0.0/16"
 
-# 服务端口范围 (NodePort Range)
+# サービスポート範囲（NodePort範囲）
 export NODE_PORT_RANGE="30000-33167"
 
-# kubernetes 服务 IP (一般是 SERVICE_CIDR 中第一个IP)
+# kubernetesサービスIP（通常はSERVICE_CIDRの最初のIP）
 export CLUSTER_KUBERNETES_SVC_IP="10.254.0.1"
 
-# 集群 DNS 服务 IP (从 SERVICE_CIDR 中预分配)
+# クラスターDNSサービスIP（SERVICE_CIDRから事前に割り当てられている）
 export CLUSTER_DNS_SVC_IP="10.254.0.2"
 
-# 集群 DNS 域名（末尾不带点号）
+# クラスターDNSドメイン名（末尾にドットなし）
 export CLUSTER_DNS_DOMAIN="cluster.local"
 
-# 将二进制目录 /opt/k8s/bin 加到 PATH 中
+# バイナリディレクトリ/ opt / k8s / binをPATHに追加する
 export PATH=/opt/k8s/bin:$PATH
 EOF
 
 echo ""
-echo "-------------------------分发集群配置参数脚本-------------------------"
+echo "---------------クラスター構成パラメータースクリプトを配布する---------------"
 echo ""
 source environment.sh
 for node_ip in ${NODE_IPS[@]}
@@ -85,7 +83,7 @@ echo ""
 mkdir -p /opt/k8s/cert && cd /opt/k8s/work
 
 echo ""
-echo "-------------------------Goのインストール-------------------------"
+echo "----------------------------- Go の設定-----------------------------"
 echo ""
 wget https://golang.org/dl/go1.16.6.linux-arm64.tar.gz
 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.16.6.linux-arm64.tar.gz
@@ -93,7 +91,7 @@ export PATH=$PATH:/usr/local/go/bin
 go version
 
 echo ""
-echo "-------------------------CFSSLの構築-------------------------"
+echo "--------------------------------CFSSLの構築---------------------------------"
 echo ""
 git clone git@github.com:cloudflare/cfssl.git
 cd cfssl
@@ -106,7 +104,7 @@ chmod +x /opt/k8s/bin/*
 export PATH=/opt/k8s/bin:$PATH
 
 echo ""
-echo "-------------------------CAプロファイルの作成-------------------------"
+echo "--------------------------- CA プロファイルの作成---------------------------"
 echo ""
 # CAファイルを生成するためのJSON設定ファイルを生成する。
 cd /opt/k8s/work
@@ -171,7 +169,7 @@ for node_ip in ${NODE_IPS[@]}
   done
 
 echo ""
-echo "-------------------------kubectlのインストールと設定-------------------------"
+echo "------------------------kubectlのインストールと設定-------------------------"
 echo ""
 #kubectlのバイナリのダウンロードと配布
 cd /opt/k8s/work
@@ -253,7 +251,7 @@ for node_ip in ${NODE_IPS[@]}
   done
 
 echo ""
-echo "部署 etcd 集群"
+echo "--------------------------etcdクラスターの設定--------------------------"
 echo ""
 #etcdのバイナリのダウンロードと配布
 cd /opt/k8s/work 
@@ -383,9 +381,4 @@ for node_ip in ${NODE_IPS[@]}
     ssh root@${node_ip} "mkdir -p ${ETCD_DATA_DIR} ${ETCD_WAL_DIR}"
     ssh root@${node_ip} "systemctl daemon-reload && systemctl enable etcd && systemctl restart etcd " &
   done
-
-
-
-
-
-
+  
